@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Minimal dumbbell glyph — monochrome for AMOLED launcher. -->
+    <!-- Left weight -->
+    <path
+        android:fillColor="#4DB6AC"
+        android:pathData="M22,42h10v24H22c-2.2,0 -4,-1.8 -4,-4V46c0,-2.2 1.8,-4 4,-4z" />
+    <!-- Right weight -->
+    <path
+        android:fillColor="#4DB6AC"
+        android:pathData="M76,42h10c2.2,0 4,1.8 4,4v16c0,2.2 -1.8,4 -4,4H76V42z" />
+    <!-- Bar -->
+    <path
+        android:fillColor="#80CBC4"
+        android:pathData="M32,50h44v8H32z" />
+    <!-- Left collar -->
+    <path
+        android:fillColor="#80CBC4"
+        android:pathData="M30,46h4v16h-4z" />
+    <!-- Right collar -->
+    <path
+        android:fillColor="#80CBC4"
+        android:pathData="M74,46h4v16h-4z" />
+</vector>

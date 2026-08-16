@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GymMonth</string>
+    <string name="nav_back">← Back</string>
+
+    <string name="home_placeholder_subtitle">Monthly gym visits</string>
+    <string name="home_placeholder_hint">Pull to refresh after granting Health Connect access</string>
+    <string name="home_setup_guide">Setup guide (HC + Samsung)</string>
+    <string name="home_refresh">Refresh from Health Connect</string>
+    <string name="home_refreshing">Refreshing…</string>
+    <string name="home_month_label">%1$s — gym visits</string>
+    <string name="home_month_label_fallback">This month\'s gym visits</string>
+    <string name="home_visits_label">visits this month</string>
+    <string name="home_session_count">%1$d session(s) listed</string>
+    <string name="home_target_progress">Target %1$d · %2$d%%</string>
+    <string name="home_last_synced">Last sync: %1$s</string>
+    <string name="home_visits_heading">Visits this month</string>
+    <string name="home_flag_overlap">overlap suppressed</string>
+    <string name="home_flag_not_counted">not counted</string>
+    <string name="home_status_loading">Loading…</string>
+    <string name="home_status_ok">Synced from Health Connect</string>
+    <string name="home_status_no_data">No gym sessions this month</string>
+    <string name="home_status_permissions">Grant Exercise permission</string>
+    <string name="home_status_hc_unavailable">Health Connect not available</string>
+    <string name="home_status_bridge">No data — check Samsung Health → Health Connect</string>
+    <string name="home_status_error">Could not read Health Connect</string>
+    <string name="home_hint_no_data">If you trained on Watch 7, open Setup guide and review the Samsung bridge checklist.</string>
+    <string name="home_hint_permissions">Open Setup guide and grant Health Connect access.</string>
+    <string name="home_hint_bridge">Confirm Samsung Health is exporting exercise to Health Connect.</string>
+    <string name="home_hint_hc">Install or update Health Connect from the Play Store.</string>
+
+    <string name="onboarding_title">Connect gym data</string>
+    <string name="onboarding_subtitle">GymMonth reads strength and gym-like workouts from Health Connect on this device only.</string>
+    <string name="onboarding_step_indicator">Step %1$d of %2$d</string>
+    <string name="onboarding_step_hc">1. Health Connect</string>
+    <string name="onboarding_step_permissions">2. Permissions</string>
+    <string name="onboarding_step_bridge">3. Samsung Health bridge</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_finish">Finish</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_skip_for_now">Skip for now</string>
+
+    <string name="hc_status_available">Health Connect is installed and ready.</string>
+    <string name="hc_status_update_required">Health Connect needs to be installed or updated.</string>
+    <string name="hc_status_unavailable">Health Connect is not available on this device.</string>
+    <string name="hc_install_or_update">Open Health Connect on Play Store</string>
+
+    <string name="permissions_needed">Allow Exercise so GymMonth can count this month\'s gym visits.</string>
+    <string name="permissions_granted">Required permissions granted.</string>
+    <string name="permissions_background_optional">Background access not granted yet (optional; used later for automatic widget refresh).</string>
+    <string name="permissions_request">Grant Health Connect access</string>
+
+    <string name="bridge_title">Galaxy Watch 7 → Samsung Health → Health Connect</string>
+    <string name="bridge_intro">GymMonth never talks to the watch directly. Check each step so strength workouts can appear in Health Connect:</string>
+    <string name="bridge_item_shealth">Samsung Health is installed and you are signed in</string>
+    <string name="bridge_item_watch">Galaxy Watch 7 is paired and syncing to this phone</string>
+    <string name="bridge_item_gym_sync">A strength / gym workout appears in Samsung Health after you finish</string>
+    <string name="bridge_item_hc_export">Samsung Health is connected to Health Connect and allowed to write Exercise</string>
+    <string name="bridge_item_gymmonth_read">GymMonth is allowed to read Exercise in Health Connect</string>
+    <string name="bridge_footer">Paths vary by One UI version. Exact menu labels should be verified on your S24 Ultra before sharing with others.</string>
+
+    <string name="privacy_title">Privacy &amp; permissions</string>
+    <string name="privacy_open">Why we need access</string>
+    <string name="privacy_body">GymMonth counts gym visits this calendar month from Health Connect strength and gym-like workouts. Totals stay on this phone. No data is uploaded.</string>
+    <string name="privacy_permissions_list">We request read access to:\n• Exercise sessions (to find strength / gym workouts)\n• Background read (optional, for the home-screen widget)\n\nWe never write workouts and do not request health history beyond the platform default window. Distance is not required for visit counts.</string>
+    <string name="privacy_no_network">GymMonth does not use the network in v1. Derived monthly visit totals are stored only on device and excluded from backup.</string>
+</resources>
