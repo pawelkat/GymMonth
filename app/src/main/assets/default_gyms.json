@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "note": "Bundled default gyms for offline manual visit entry and session tagging. Address only; no account or billing data."
+  },
+  "gyms": [
+    {
+      "id": "puregym",
+      "name": "PureGym",
+      "address": "Grabenwisstrasse 5, 8604 Volketswil",
+      "selectable": true
+    }
+  ]
+}

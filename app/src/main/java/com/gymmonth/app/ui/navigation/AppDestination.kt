@@ -7,4 +7,5 @@ enum class AppDestination {
     DIAGNOSTICS,
     ONBOARDING_REPLAY,
     SESSION_DETAILS,
+    ADD_VISIT,
 }

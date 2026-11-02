@@ -217,11 +217,14 @@ Copy notification channel pattern from SwimWeek `PoolReminderNotifier`.
 | **5** | Glance AMOLED widget + updater | ✅ Widget shows month visits |
 | **6** | Background sync + month-boundary rollover | ✅ Count updates overnight / HC changes |
 | **7** | Monthly target + progress ring (home + widget) | Target works |
-| **8** | Gym place tagging on session details | Places persist locally |
+| **8** | Gym place tagging on session details | ✅ Places persist locally (`GymPlaceStore`; default gyms from `assets/default_gyms.json`, PureGym seeded) |
+| **8b** | Manual gym visits (app-local) | ✅ Home → **Add visit**; stored in `ManualVisitStore` (`manual-<uuid>`), merged into monthly count after every HC aggregate; deletable from session details. **Never written to Health Connect.** |
 | **9** | Gym reminder notifications + Settings | Notification fires on schedule |
 | **10** | 6-month history chart + polish | Polish |
 
 Do **not** start pools/CrowdMonitor/disturber work for GymMonth.
+
+Manual visits are an intentional exception to “HC is the only source”: they live only in app DataStore (excluded from backup), count toward `visitCount` through the same overlap + visit-counting policy (`mergeManualVisits`), and HC sessions stay read-only.
 
 ---
 
