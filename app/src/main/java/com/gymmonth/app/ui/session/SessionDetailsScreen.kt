@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,6 +34,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.gymmonth.app.R
 import com.gymmonth.app.data.DefaultGymsRepository
+import com.gymmonth.app.data.PreferencesStore
+import com.gymmonth.app.vault.GymVaultLogger
+import com.gymmonth.app.vault.message
 import com.gymmonth.app.domain.CUSTOM_GYM_PLACE_ID
 import com.gymmonth.app.domain.GymPlace
 import com.gymmonth.app.domain.GymVisit
@@ -51,28 +55,43 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class SessionDetailsUiState(
     val visit: GymVisit? = null,
     val notFound: Boolean = false,
+    val vaultWriteEnabled: Boolean = false,
 )
 
 @HiltViewModel
 class SessionDetailsViewModel @Inject constructor(
     private val repository: GymVisitRepository,
-    defaultGyms: DefaultGymsRepository,
+    private val defaultGyms: DefaultGymsRepository,
+    preferencesStore: PreferencesStore,
+    private val vaultLogger: GymVaultLogger,
 ) : ViewModel() {
 
-    val gyms: List<GymPlace> = defaultGyms.selectableGyms()
+    val gyms: StateFlow<List<GymPlace>> = defaultGyms.gymsFlow
+        .map { (it ?: defaultGyms.all()).filter(GymPlace::selectable) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, defaultGyms.selectableGyms())
+
+    /** Last vault write result for this screen (null = none yet). */
+    val vaultMessage = MutableStateFlow<GymVaultLogger.Outcome?>(null)
+    val vaultBusy = MutableStateFlow(false)
+
+    init {
+        viewModelScope.launch { defaultGyms.reload() }
+    }
 
     private val sessionIdFlow = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<SessionDetailsUiState> = combine(
         sessionIdFlow,
         repository.summaryFlow,
-    ) { sessionId, summary ->
+        preferencesStore.preferencesFlow,
+    ) { sessionId, summary, prefs ->
         if (sessionId == null) {
             return@combine SessionDetailsUiState(notFound = true)
         }
@@ -80,6 +99,7 @@ class SessionDetailsViewModel @Inject constructor(
         SessionDetailsUiState(
             visit = visit,
             notFound = visit == null,
+            vaultWriteEnabled = prefs.vaultWriteEnabled,
         )
     }.stateIn(
         viewModelScope,
@@ -88,7 +108,18 @@ class SessionDetailsViewModel @Inject constructor(
     )
 
     fun setSessionId(sessionId: String) {
+        if (sessionIdFlow.value != sessionId) vaultMessage.value = null
         sessionIdFlow.value = sessionId
+    }
+
+    /** Explicit "Log to vault" — Daily ## Workouts for this visit (HC or manual). */
+    fun logToVault() {
+        val visit = uiState.value.visit ?: return
+        viewModelScope.launch {
+            vaultBusy.value = true
+            vaultMessage.value = vaultLogger.logVisit(visit, requireEnabled = false)
+            vaultBusy.value = false
+        }
     }
 
     fun setGym(gym: GymPlace) {
@@ -129,6 +160,10 @@ fun SessionDetailsScreen(
         viewModel.setSessionId(sessionId)
     }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val gyms by viewModel.gyms.collectAsStateWithLifecycle()
+    val vaultOutcome by viewModel.vaultMessage.collectAsStateWithLifecycle()
+    val vaultBusy by viewModel.vaultBusy.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -168,7 +203,7 @@ fun SessionDetailsScreen(
         var showCustom by rememberSaveable(sessionId) { mutableStateOf(false) }
         var customName by rememberSaveable(sessionId) { mutableStateOf("") }
         GymDropdown(
-            gyms = viewModel.gyms,
+            gyms = gyms,
             selectedLabel = visit.gymName,
             onPickGym = {
                 showCustom = false
@@ -259,6 +294,31 @@ fun SessionDetailsScreen(
                 label = stringResource(R.string.session_flags),
                 value = stringResource(R.string.session_flag_overlap),
             )
+        }
+
+        if (state.vaultWriteEnabled) {
+            Spacer(modifier = Modifier.height(24.dp))
+            OutlinedButton(
+                onClick = { viewModel.logToVault() },
+                enabled = !vaultBusy,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.session_log_to_vault))
+            }
+            vaultOutcome?.let {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = it.message(context),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (it is GymVaultLogger.Outcome.Failed ||
+                        it is GymVaultLogger.Outcome.NeedPermission
+                    ) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))

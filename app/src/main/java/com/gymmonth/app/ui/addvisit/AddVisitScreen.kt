@@ -3,6 +3,7 @@ package com.gymmonth.app.ui.addvisit
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.text.format.DateFormat
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -33,9 +35,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.gymmonth.app.R
 import com.gymmonth.app.data.DefaultGymsRepository
+import com.gymmonth.app.data.PreferencesStore
+import com.gymmonth.app.vault.GymVaultLogger
+import com.gymmonth.app.vault.message
 import com.gymmonth.app.domain.CUSTOM_GYM_PLACE_ID
 import com.gymmonth.app.domain.GymPlace
 import com.gymmonth.app.domain.ManualVisit
@@ -54,15 +60,33 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 import javax.inject.Inject
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class AddVisitViewModel @Inject constructor(
     private val repository: GymVisitRepository,
     private val clock: ClockProvider,
-    defaultGyms: DefaultGymsRepository,
+    private val defaultGyms: DefaultGymsRepository,
+    private val preferencesStore: PreferencesStore,
+    private val vaultLogger: GymVaultLogger,
 ) : ViewModel() {
-    val gyms: List<GymPlace> = defaultGyms.selectableGyms()
+    val gyms: StateFlow<List<GymPlace>> = defaultGyms.gymsFlow
+        .map { (it ?: defaultGyms.all()).filter(GymPlace::selectable) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, defaultGyms.selectableGyms())
+
+    /** Preferred gym from Settings, else first catalog gym (PureGym). */
+    val defaultGym: StateFlow<GymPlace?> = combine(gyms, preferencesStore.preferencesFlow) { list, prefs ->
+        prefs.defaultGymId?.let { id -> list.firstOrNull { it.id == id } } ?: list.firstOrNull()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultGyms.selectableGyms().firstOrNull())
+
+    init {
+        viewModelScope.launch { defaultGyms.reload() }
+    }
 
     fun zone(): ZoneId = clock.zoneId()
 
@@ -80,7 +104,7 @@ class AddVisitViewModel @Inject constructor(
         durationMinutes: Int,
         gymPlaceId: String?,
         gymName: String?,
-        onSaved: () -> Unit,
+        onSaved: (vaultOutcome: GymVaultLogger.Outcome) -> Unit,
     ) {
         val start = date.atTime(time).atZone(clock.zoneId()).toInstant()
         val visit = ManualVisit.create(
@@ -92,7 +116,9 @@ class AddVisitViewModel @Inject constructor(
         )
         viewModelScope.launch {
             repository.addManualVisit(visit)
-            onSaved()
+            // Daily ## Workouts (only when vault write is enabled; fail-soft).
+            val outcome = vaultLogger.logVisit(visit.toGymVisit(), requireEnabled = true)
+            onSaved(outcome)
         }
     }
 }
@@ -106,7 +132,8 @@ fun AddVisitScreen(
     viewModel: AddVisitViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val defaultGym = viewModel.gyms.firstOrNull()
+    val gyms by viewModel.gyms.collectAsStateWithLifecycle()
+    val defaultGym by viewModel.defaultGym.collectAsStateWithLifecycle()
 
     var epochDay by rememberSaveable { mutableLongStateOf(viewModel.today().toEpochDay()) }
     var minuteOfDay by rememberSaveable {
@@ -117,6 +144,13 @@ fun AddVisitScreen(
     var durationMinutes by rememberSaveable { mutableIntStateOf(60) }
     var gymPlaceId by rememberSaveable { mutableStateOf(defaultGym?.id) }
     var gymName by rememberSaveable { mutableStateOf(defaultGym?.name) }
+    var gymTouched by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(defaultGym) {
+        if (!gymTouched) {
+            gymPlaceId = defaultGym?.id
+            gymName = defaultGym?.name
+        }
+    }
     var showCustom by rememberSaveable { mutableStateOf(false) }
     var customName by rememberSaveable { mutableStateOf("") }
     var saving by rememberSaveable { mutableStateOf(false) }
@@ -200,19 +234,22 @@ fun AddVisitScreen(
 
         SectionLabel(stringResource(R.string.add_visit_gym))
         GymDropdown(
-            gyms = viewModel.gyms,
+            gyms = gyms,
             selectedLabel = gymName,
             onPickGym = {
+                gymTouched = true
                 showCustom = false
                 gymPlaceId = it.id
                 gymName = it.name
             },
             onPickCustom = {
+                gymTouched = true
                 showCustom = true
                 gymPlaceId = CUSTOM_GYM_PLACE_ID
                 gymName = customName.ifBlank { null }
             },
             onClear = {
+                gymTouched = true
                 showCustom = false
                 gymPlaceId = null
                 gymName = null
@@ -239,7 +276,12 @@ fun AddVisitScreen(
                     durationMinutes = durationMinutes,
                     gymPlaceId = if (gymName == null) null else gymPlaceId,
                     gymName = gymName,
-                    onSaved = onBack,
+                    onSaved = { outcome ->
+                        if (outcome != GymVaultLogger.Outcome.Disabled) {
+                            Toast.makeText(context, outcome.message(context), Toast.LENGTH_LONG).show()
+                        }
+                        onBack()
+                    },
                 )
             },
             enabled = !saving && !(showCustom && customName.isBlank()),

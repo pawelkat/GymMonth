@@ -219,6 +219,7 @@ Copy notification channel pattern from SwimWeek `PoolReminderNotifier`.
 | **7** | Monthly target + progress ring (home + widget) | Target works |
 | **8** | Gym place tagging on session details | ✅ Places persist locally (`GymPlaceStore`; default gyms from `assets/default_gyms.json`, PureGym seeded) |
 | **8b** | Manual gym visits (app-local) | ✅ Home → **Add visit**; stored in `ManualVisitStore` (`manual-<uuid>`), merged into monthly count after every HC aggregate; deletable from session details. **Never written to Health Connect.** |
+| **8c** | Settings screen + Obsidian vault write (VaultWrite lib) | ✅ Home → **Settings**: target, counting mode, default gym, vault toggles, All files access, **Save/Load settings ↔ `Notes/GymMonth settings.md`**. Visits → `Daily/YYYY-MM-DD.md` under **`## Workouts`** (manual add, session **Log to vault**, optional auto-log after sync, month backfill). Gyms catalog lives in vault `Notes/GymMonth/default_gyms.json` (seeded once from assets, never overwritten, bundled fallback). Local files only, no INTERNET. |
 | **9** | Gym reminder notifications + Settings | Notification fires on schedule |
 | **10** | 6-month history chart + polish | Polish |
 
@@ -273,6 +274,7 @@ If Watch logs only “Workout” without strength type, add Settings multi-selec
 - No backup of health-derived caches  
 - Read-only HC  
 - No INTERNET v1  
+- Optional vault write (PR 8c): plain Markdown/JSON into the local DriveSync vault folder only (`MANAGE_EXTERNAL_STORAGE`, ToDaily pattern). Only derived visit lines (type, gym, times) and non-secret settings — never raw HC records.  
 - Privacy rationale activity for HC  
 
 ---

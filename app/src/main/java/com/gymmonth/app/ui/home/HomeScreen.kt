@@ -47,6 +47,7 @@ fun HomeScreen(
     onOpenDiagnostics: () -> Unit,
     onOpenSession: (sessionId: String) -> Unit = {},
     onAddVisit: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -230,6 +231,13 @@ fun HomeScreen(
                     stringResource(R.string.home_refresh)
                 },
             )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = onOpenSettings,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.home_settings))
         }
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedButton(

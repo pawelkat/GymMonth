@@ -14,6 +14,7 @@ import com.gymmonth.app.domain.mergeManualVisits
 import com.gymmonth.app.sync.SyncReason
 import com.gymmonth.app.sync.WidgetUpdater
 import com.gymmonth.app.util.ClockProvider
+import com.gymmonth.app.vault.GymVaultLogger
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -40,6 +41,7 @@ class GymVisitRepository @Inject constructor(
     private val widgetUpdater: WidgetUpdater,
     private val manualVisitStore: ManualVisitStore,
     private val gymPlaceStore: GymPlaceStore,
+    private val vaultLogger: GymVaultLogger,
 ) {
     private val inMemory = MutableStateFlow<MonthlyGymSummary?>(null)
     private val writeMutex = Mutex()
@@ -67,7 +69,10 @@ class GymVisitRepository @Inject constructor(
             SyncReason.CHANGES,
             -> false
         }
-        return refreshMonthlySummary(forceFull = forceFull, reason = reason)
+        val summary = refreshMonthlySummary(forceFull = forceFull, reason = reason)
+        // Optional vault auto-log (Daily ## Workouts). Fail-soft: never breaks HC sync.
+        vaultLogger.logNewVisitsAfterSync(summary)
+        return summary
     }
 
     suspend fun refreshMonthlySummary(
