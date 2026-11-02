@@ -7,6 +7,7 @@ import com.gymmonth.app.data.UserPreferences
 import com.gymmonth.app.domain.MonthlyGymSummary
 import com.gymmonth.app.health.GymVisitRepository
 import com.gymmonth.app.sync.SyncReason
+import com.gymmonth.app.sync.SyncScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +28,7 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: GymVisitRepository,
+    private val syncScheduler: SyncScheduler,
     preferencesStore: PreferencesStore,
 ) : ViewModel() {
 
@@ -53,6 +55,7 @@ class HomeViewModel @Inject constructor(
     )
 
     init {
+        syncScheduler.ensureScheduled()
         refresh(reason = SyncReason.APP_FOREGROUND)
     }
 
@@ -62,6 +65,7 @@ class HomeViewModel @Inject constructor(
             error.value = null
             try {
                 repository.sync(reason)
+                syncScheduler.ensureScheduled()
             } catch (e: Exception) {
                 error.value = e.message ?: e::class.java.simpleName
             } finally {

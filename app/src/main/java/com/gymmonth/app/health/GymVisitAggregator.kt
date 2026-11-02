@@ -25,13 +25,13 @@ class GymVisitAggregator @Inject constructor(
 ) {
     /**
      * @param includedKinds exercise kinds that count (default: strength family + HIIT)
-     * @param matchTitleKeywords when true, also include sessions whose title looks gym-like
+     * @param matchTitleKeywords when true, also include unmapped types whose title/notes look gym-like
      * @param visitMode [VisitCountingMode.PER_SESSION] (default) or one-per-day
      */
     suspend fun aggregateMonth(
         month: MonthRange,
         includedKinds: Set<GymExerciseKind> = GymExerciseTypeMapper.defaultIncludedKinds,
-        matchTitleKeywords: Boolean = false,
+        matchTitleKeywords: Boolean = true,
         visitMode: VisitCountingMode = VisitCountingMode.PER_SESSION,
     ): MonthlyGymSummary {
         val rawRecords = dataSource.listExerciseSessions(month.start, month.endExclusive)
@@ -75,7 +75,9 @@ class GymVisitAggregator @Inject constructor(
     ): GymExerciseKind? {
         val mapped = GymExerciseTypeMapper.toKind(rec.exerciseType)
         if (mapped != null && mapped in includedKinds) return mapped
-        if (matchTitleKeywords && GymExerciseTypeMapper.titleLooksLikeGym(rec.title)) {
+        if (matchTitleKeywords &&
+            GymExerciseTypeMapper.titleLooksLikeGym(rec.title, rec.notes)
+        ) {
             return GymExerciseKind.OTHER
         }
         return null

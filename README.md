@@ -14,9 +14,9 @@ Sibling of [SwimWeek](https://github.com/pawelkat/SwimWeek) — same architectur
 | 1 | Domain models & month utilities | Done |
 | 2 | Health Connect permissions + onboarding shell | Done |
 | 3 | Aggregator + repository + cache | Done |
-| 4 | Home UI + diagnostics + session list | Planned |
-| 5 | Glance AMOLED widget | Planned |
-| 6 | Background sync + month-boundary rollover | Planned |
+| 4 | Home UI + diagnostics + session list | Done |
+| 5 | Glance AMOLED widget | Done |
+| 6 | Background sync + month-boundary rollover | Done |
 | 7 | Monthly target + progress ring | Planned |
 | 8 | Gym place tagging | Planned |
 | 9 | Gym reminder notifications | Planned |

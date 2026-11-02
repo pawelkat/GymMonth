@@ -15,6 +15,16 @@
     <string name="home_target_progress">Target %1$d · %2$d%%</string>
     <string name="home_last_synced">Last sync: %1$s</string>
     <string name="home_visits_heading">Visits this month</string>
+    <string name="home_visits_hint">Tap a session for details</string>
+    <string name="home_diagnostics">Diagnostics</string>
+    <string name="home_add_widget">Add home screen widget</string>
+    <string name="home_widget_pinned">Widget pin requested — place it on the home screen</string>
+    <string name="home_widget_pin_unsupported">Long-press the home screen → Widgets → GymMonth</string>
+
+    <string name="widget_name">GymMonth</string>
+    <string name="widget_description">This month\'s gym visits (AMOLED)</string>
+    <string name="widget_loading">GymMonth</string>
+    <string name="widget_icon_cd">Dumbbell</string>
     <string name="home_flag_overlap">overlap suppressed</string>
     <string name="home_flag_not_counted">not counted</string>
     <string name="home_status_loading">Loading…</string>
@@ -59,6 +69,38 @@
     <string name="bridge_item_hc_export">Samsung Health is connected to Health Connect and allowed to write Exercise</string>
     <string name="bridge_item_gymmonth_read">GymMonth is allowed to read Exercise in Health Connect</string>
     <string name="bridge_footer">Paths vary by One UI version. Exact menu labels should be verified on your S24 Ultra before sharing with others.</string>
+
+    <string name="diagnostics_title">Diagnostics</string>
+    <string name="diagnostics_no_cache">No cached summary yet. Refresh from Home first.</string>
+    <string name="diagnostics_status">Status</string>
+    <string name="diagnostics_visits">Visit count</string>
+    <string name="diagnostics_sessions">Sessions</string>
+    <string name="diagnostics_counted">Counted as visit</string>
+    <string name="diagnostics_overlap">Overlap suppressed</string>
+    <string name="diagnostics_synced">Last sync</string>
+    <string name="diagnostics_month_key">Month key</string>
+    <string name="diagnostics_origins">Source packages</string>
+    <string name="diagnostics_user_reported">You reported training with no data. Review the bridge checklist below.</string>
+    <string name="diagnostics_sessions_heading">Sessions this month</string>
+    <string name="diagnostics_no_sessions">No gym sessions in the current month cache.</string>
+    <string name="diagnostics_i_trained">I trained but see no data</string>
+    <string name="diagnostics_clear_report">Clear missing-data report</string>
+
+    <string name="session_gym_unset">Gym not tagged</string>
+    <string name="session_place_hint">Gym place tagging lands later. Time, type, and source are below.</string>
+    <string name="session_details_heading">Session</string>
+    <string name="session_when">When</string>
+    <string name="session_duration">Duration</string>
+    <string name="session_duration_minutes">%1$d min</string>
+    <string name="session_type">Type</string>
+    <string name="session_source">Source app</string>
+    <string name="session_title">Title</string>
+    <string name="session_counts">Counts as visit</string>
+    <string name="session_counts_yes">Yes</string>
+    <string name="session_counts_no">No</string>
+    <string name="session_flags">Flags</string>
+    <string name="session_flag_overlap">overlap suppressed</string>
+    <string name="session_not_found">Session not in this month\'s cache. Refresh from Home and try again.</string>
 
     <string name="privacy_title">Privacy &amp; permissions</string>
     <string name="privacy_open">Why we need access</string>

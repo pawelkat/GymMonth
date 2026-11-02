@@ -43,5 +43,6 @@ class HealthConnectDataSourceImpl @Inject constructor(
             end = endTime,
             dataOriginPackage = metadata.dataOrigin.packageName,
             title = title,
+            notes = notes,
         )
 }

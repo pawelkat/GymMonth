@@ -213,9 +213,9 @@ Copy notification channel pattern from SwimWeek `PoolReminderNotifier`.
 | **1** | Domain: `MonthRange`, models, visit policy unit tests | ✅ Tests green |
 | **2** | HC permissions + onboarding shell | ✅ Can grant Exercise read |
 | **3** | Aggregator + repository + cache for monthly visits | ✅ Home shows count after sync |
-| **4** | Home UI + diagnostics + session list | Usable companion app |
-| **5** | Glance AMOLED widget + updater | Widget shows month visits |
-| **6** | Background sync + month-boundary rollover | Count updates overnight / HC changes |
+| **4** | Home UI + diagnostics + session list | ✅ Usable companion app |
+| **5** | Glance AMOLED widget + updater | ✅ Widget shows month visits |
+| **6** | Background sync + month-boundary rollover | ✅ Count updates overnight / HC changes |
 | **7** | Monthly target + progress ring (home + widget) | Target works |
 | **8** | Gym place tagging on session details | Places persist locally |
 | **9** | Gym reminder notifications + Settings | Notification fires on schedule |

@@ -27,4 +27,5 @@ data class RawExerciseSession(
     val end: Instant,
     val dataOriginPackage: String,
     val title: String?,
+    val notes: String? = null,
 )

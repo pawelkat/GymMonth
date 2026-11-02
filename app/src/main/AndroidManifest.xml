@@ -58,6 +58,27 @@
             </intent-filter>
         </activity-alias>
 
+        <receiver
+            android:name=".sync.BootCompletedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".widget.GymMonthWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/gymmonth_widget_info" />
+        </receiver>
+
         <!-- Disable default WorkManager initializer; Application provides Configuration. -->
         <provider
             android:name="androidx.startup.InitializationProvider"

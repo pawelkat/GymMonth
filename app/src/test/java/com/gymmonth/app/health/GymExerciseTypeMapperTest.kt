@@ -30,6 +30,10 @@ class GymExerciseTypeMapperTest {
                 ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING,
             ),
         )
+        assertEquals(
+            GymExerciseKind.OTHER,
+            GymExerciseTypeMapper.toKind(ExerciseSessionRecord.EXERCISE_TYPE_OTHER_WORKOUT),
+        )
     }
 
     @Test
@@ -41,17 +45,19 @@ class GymExerciseTypeMapperTest {
     fun titleKeywords() {
         assertTrue(GymExerciseTypeMapper.titleLooksLikeGym("Morning Gym"))
         assertTrue(GymExerciseTypeMapper.titleLooksLikeGym("KRAFT training"))
+        assertTrue(GymExerciseTypeMapper.titleLooksLikeGym("Push-ups"))
+        assertTrue(GymExerciseTypeMapper.titleLooksLikeGym("Weight machine"))
         assertFalse(GymExerciseTypeMapper.titleLooksLikeGym("Morning jog"))
         assertFalse(GymExerciseTypeMapper.titleLooksLikeGym(null))
     }
 
     @Test
-    fun defaultIncluded_hasCoreStrength() {
+    fun defaultIncluded_hasCoreStrengthAndGenericWorkout() {
         val d = GymExerciseTypeMapper.defaultIncludedKinds
         assertTrue(GymExerciseKind.STRENGTH_TRAINING in d)
         assertTrue(GymExerciseKind.WEIGHTLIFTING in d)
         assertTrue(GymExerciseKind.CALISTHENICS in d)
         assertTrue(GymExerciseKind.HIIT in d)
-        assertFalse(GymExerciseKind.OTHER in d)
+        assertTrue(GymExerciseKind.OTHER in d)
     }
 }

@@ -1,5 +1,6 @@
 package com.gymmonth.app.health
 
+import com.gymmonth.app.data.ChangesTokenStore
 import com.gymmonth.app.data.PreferencesStore
 import com.gymmonth.app.data.SummaryCacheStore
 import com.gymmonth.app.domain.MonthRange
@@ -16,13 +17,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 
 /**
- * Orchestrates monthly aggregation, cache, and future widget updates.
- * Changes-token incremental sync lands with background workers (PR 6).
+ * Orchestrates monthly aggregation, Changes-token incremental sync, cache,
+ * and Glance updates via [WidgetUpdater].
  */
 @Singleton
 class GymVisitRepository @Inject constructor(
     private val aggregator: GymVisitAggregator,
     private val summaryCache: SummaryCacheStore,
+    private val changesTokenStore: ChangesTokenStore,
+    private val changesSyncEngine: ChangesSyncEngine,
     private val preferencesStore: PreferencesStore,
     private val availability: HealthConnectAvailability,
     private val permissionChecker: HealthPermissionChecker,
@@ -37,7 +40,8 @@ class GymVisitRepository @Inject constructor(
 
     /**
      * Entry used by UI and workers.
-     * v1 always full-aggregates for MANUAL / FOREGROUND; PERIODIC same until PR 6.
+     * - MANUAL / FOREGROUND / MIDNIGHT / TOKEN_EXPIRED → full aggregate
+     * - PERIODIC / CHANGES → drain first; re-aggregate only if needed
      */
     suspend fun sync(reason: SyncReason): MonthlyGymSummary {
         val forceFull = when (reason) {
@@ -48,15 +52,16 @@ class GymVisitRepository @Inject constructor(
             SyncReason.MONTH_IDENTITY_CHANGED,
             SyncReason.TOKEN_EXPIRED,
             SyncReason.WIDGET_PIN,
+            -> true
             SyncReason.PERIODIC,
             SyncReason.CHANGES,
-            -> true
+            -> false
         }
         return refreshMonthlySummary(forceFull = forceFull, reason = reason)
     }
 
     suspend fun refreshMonthlySummary(
-        forceFull: Boolean = true,
+        forceFull: Boolean = false,
         @Suppress("UNUSED_PARAMETER") reason: SyncReason = SyncReason.MANUAL,
     ): MonthlyGymSummary {
         val month = MonthRange.current(
@@ -87,20 +92,33 @@ class GymVisitRepository @Inject constructor(
         val cached = summaryCache.summaryFlow.first()
         val monthChanged = cached != null &&
             cached.month.identityKey() != month.identityKey()
-        val doFull = forceFull || monthChanged || cached == null
+        val noToken = changesTokenStore.get().isNullOrBlank()
+        var doFull = forceFull || monthChanged || noToken
 
-        // When not forcing full and month identity matches, keep cache (PR 6 will
-        // drain HC Changes tokens here).
         if (!doFull) {
-            val keep = cached ?: return fullAggregate(month, null)
-            inMemory.value = keep
-            return keep
+            val drain = changesSyncEngine.drain()
+            if (drain.tokenExpired) {
+                doFull = true
+            } else if (!drain.needsReaggregate) {
+                val keep = cached ?: return fullAggregateAndToken(month, cached)
+                if (keep.month.identityKey() == month.identityKey()) {
+                    inMemory.value = keep
+                    return keep
+                }
+                doFull = true
+            } else {
+                doFull = true
+            }
         }
 
-        return fullAggregate(month, cached)
+        return if (doFull) {
+            fullAggregateAndToken(month, cached)
+        } else {
+            cached ?: fullAggregateAndToken(month, null)
+        }
     }
 
-    private suspend fun fullAggregate(
+    private suspend fun fullAggregateAndToken(
         month: MonthRange,
         cached: MonthlyGymSummary?,
     ): MonthlyGymSummary {
@@ -128,7 +146,9 @@ class GymVisitRepository @Inject constructor(
                     )
                 }
             }
-            cacheAndReturn(summary)
+            val saved = cacheAndReturn(summary)
+            changesSyncEngine.issueToken()
+            saved
         } catch (_: SecurityException) {
             cacheAndReturn(
                 MonthlyGymSummary.empty(
@@ -151,10 +171,11 @@ class GymVisitRepository @Inject constructor(
     }
 
     /**
-     * Clears summary + in-memory state (permission revoke path).
+     * Clears summary + changes token + in-memory state (permission revoke path).
      */
     suspend fun clearLocalHealthState() {
         summaryCache.clear()
+        changesTokenStore.clear()
         inMemory.value = null
         widgetUpdater.updateAll()
     }

@@ -98,14 +98,39 @@ class GymVisitAggregatorTest {
     }
 
     @Test
-    fun titleKeywordMatch_offByDefault() = runBlocking {
+    fun otherWorkout_countsAsVisit() = runBlocking {
+        val fake = FakeHealthConnectDataSource(
+            sessions = listOf(
+                session(
+                    id = "wm",
+                    day = 7,
+                    hour = 12,
+                    type = ExerciseSessionRecord.EXERCISE_TYPE_OTHER_WORKOUT,
+                    title = "Weight machine",
+                ),
+                session(
+                    id = "pu",
+                    day = 8,
+                    hour = 9,
+                    type = ExerciseSessionRecord.EXERCISE_TYPE_OTHER_WORKOUT,
+                    title = "Push-ups",
+                ),
+            ),
+        )
+        val summary = GymVisitAggregator(fake, clock).aggregateMonth(month)
+        assertEquals(2, summary.visitCount)
+        assertTrue(summary.visits.all { it.exerciseType == GymExerciseKind.OTHER })
+    }
+
+    @Test
+    fun titleKeywordMatch_picksUnmappedType() = runBlocking {
         val fake = FakeHealthConnectDataSource(
             sessions = listOf(
                 session(
                     id = "generic",
                     day = 7,
                     hour = 12,
-                    type = ExerciseSessionRecord.EXERCISE_TYPE_OTHER_WORKOUT,
+                    type = ExerciseSessionRecord.EXERCISE_TYPE_EXERCISE_CLASS,
                     title = "Gym session",
                 ),
             ),

@@ -18,9 +18,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.gymmonth.app.data.PreferencesStore
+import com.gymmonth.app.ui.diagnostics.DiagnosticsScreen
 import com.gymmonth.app.ui.home.HomeScreen
 import com.gymmonth.app.ui.navigation.AppDestination
 import com.gymmonth.app.ui.onboarding.OnboardingScreen
+import com.gymmonth.app.ui.session.SessionDetailsScreen
 import com.gymmonth.app.ui.theme.GymMonthTheme
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,7 +43,7 @@ class MainViewModel @Inject constructor(
 }
 
 /**
- * Companion shell: onboarding gate + home with monthly visit count.
+ * Companion navigation: onboarding, home, diagnostics, session details.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -54,6 +56,8 @@ class MainActivity : ComponentActivity() {
                 val mainVm: MainViewModel = hiltViewModel()
                 val onboardingDone by mainVm.onboardingCompleted.collectAsStateWithLifecycle()
                 var destination by remember { mutableStateOf(AppDestination.HOME) }
+                var selectedSessionId by remember { mutableStateOf<String?>(null) }
+                var sessionDetailsBack by remember { mutableStateOf(AppDestination.HOME) }
 
                 LaunchedEffect(onboardingDone) {
                     when (onboardingDone) {
@@ -67,6 +71,12 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                fun openSession(sessionId: String, from: AppDestination) {
+                    selectedSessionId = sessionId
+                    sessionDetailsBack = from
+                    destination = AppDestination.SESSION_DETAILS
+                }
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val pad = Modifier.padding(innerPadding)
                     when (destination) {
@@ -78,14 +88,33 @@ class MainActivity : ComponentActivity() {
                         )
                         AppDestination.HOME,
                         AppDestination.SETTINGS,
-                        AppDestination.DIAGNOSTICS,
-                        AppDestination.SESSION_DETAILS,
                         -> HomeScreen(
                             onOpenOnboarding = {
                                 destination = AppDestination.ONBOARDING_REPLAY
                             },
+                            onOpenDiagnostics = {
+                                destination = AppDestination.DIAGNOSTICS
+                            },
+                            onOpenSession = { openSession(it, AppDestination.HOME) },
                             modifier = pad,
                         )
+                        AppDestination.DIAGNOSTICS -> DiagnosticsScreen(
+                            onBack = { destination = AppDestination.HOME },
+                            onOpenSession = { openSession(it, AppDestination.DIAGNOSTICS) },
+                            modifier = pad,
+                        )
+                        AppDestination.SESSION_DETAILS -> {
+                            val id = selectedSessionId
+                            if (id == null) {
+                                destination = sessionDetailsBack
+                            } else {
+                                SessionDetailsScreen(
+                                    sessionId = id,
+                                    onBack = { destination = sessionDetailsBack },
+                                    modifier = pad,
+                                )
+                            }
+                        }
                     }
                 }
             }

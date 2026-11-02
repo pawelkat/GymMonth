@@ -1,6 +1,11 @@
 package com.gymmonth.app.ui.home
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,7 +32,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gymmonth.app.R
 import com.gymmonth.app.domain.SourceStatus
 import com.gymmonth.app.domain.TargetProgress
+import com.gymmonth.app.domain.displayName
 import com.gymmonth.app.ui.theme.AmoledBlack
+import com.gymmonth.app.widget.GymMonthWidgetReceiver
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -35,10 +43,13 @@ import kotlin.math.roundToInt
 @Composable
 fun HomeScreen(
     onOpenOnboarding: () -> Unit,
+    onOpenDiagnostics: () -> Unit,
+    onOpenSession: (sessionId: String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val summary = state.summary
 
     Column(
@@ -154,11 +165,18 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
             )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.home_visits_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth(),
+            )
             Spacer(modifier = Modifier.height(8.dp))
             val timeFmt = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
                 .withLocale(Locale.getDefault())
             val zone = summary?.month?.zoneId ?: java.time.ZoneId.systemDefault()
-            visits.take(20).forEach { visit ->
+            visits.forEach { visit ->
                 val day = timeFmt.format(visit.start.atZone(zone))
                 val flags = buildList {
                     if (visit.overlapSuppressed) add(stringResource(R.string.home_flag_overlap))
@@ -170,7 +188,8 @@ fun HomeScreen(
                     text = buildString {
                         append(day)
                         append(" · ")
-                        append(visit.exerciseType.name.lowercase().replace('_', ' '))
+                        append(visit.exerciseType.displayName())
+                        visit.gymName?.let { append(" · ").append(it) }
                         if (flags.isNotEmpty()) {
                             append(" (")
                             append(flags)
@@ -181,7 +200,8 @@ fun HomeScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp),
+                        .clickable { onOpenSession(visit.id) }
+                        .padding(vertical = 8.dp),
                 )
             }
         }
@@ -202,10 +222,43 @@ fun HomeScreen(
         }
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedButton(
+            onClick = onOpenDiagnostics,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.home_diagnostics))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
             onClick = onOpenOnboarding,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(R.string.home_setup_guide))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = {
+                val manager = AppWidgetManager.getInstance(context)
+                val provider = ComponentName(context, GymMonthWidgetReceiver::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    manager.isRequestPinAppWidgetSupported
+                ) {
+                    manager.requestPinAppWidget(provider, null, null)
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.home_widget_pinned),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.home_widget_pin_unsupported),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.home_add_widget))
         }
     }
 }
