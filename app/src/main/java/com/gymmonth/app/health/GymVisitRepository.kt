@@ -1,11 +1,16 @@
 package com.gymmonth.app.health
 
 import com.gymmonth.app.data.ChangesTokenStore
+import com.gymmonth.app.data.GymPlaceStore
+import com.gymmonth.app.data.ManualVisitStore
 import com.gymmonth.app.data.PreferencesStore
 import com.gymmonth.app.data.SummaryCacheStore
+import com.gymmonth.app.domain.ManualVisit
 import com.gymmonth.app.domain.MonthRange
 import com.gymmonth.app.domain.MonthlyGymSummary
 import com.gymmonth.app.domain.SourceStatus
+import com.gymmonth.app.domain.isManualVisitId
+import com.gymmonth.app.domain.mergeManualVisits
 import com.gymmonth.app.sync.SyncReason
 import com.gymmonth.app.sync.WidgetUpdater
 import com.gymmonth.app.util.ClockProvider
@@ -15,6 +20,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Orchestrates monthly aggregation, Changes-token incremental sync, cache,
@@ -31,8 +38,11 @@ class GymVisitRepository @Inject constructor(
     private val permissionChecker: HealthPermissionChecker,
     private val clock: ClockProvider,
     private val widgetUpdater: WidgetUpdater,
+    private val manualVisitStore: ManualVisitStore,
+    private val gymPlaceStore: GymPlaceStore,
 ) {
     private val inMemory = MutableStateFlow<MonthlyGymSummary?>(null)
+    private val writeMutex = Mutex()
 
     /** Cache + latest in-memory refresh for UI. */
     val summaryFlow: Flow<MonthlyGymSummary?> =
@@ -70,7 +80,7 @@ class GymVisitRepository @Inject constructor(
         )
 
         if (!availability.isAvailable()) {
-            return cacheAndReturn(
+            return mergeAndCache(
                 MonthlyGymSummary.empty(
                     month = month,
                     lastSyncedAt = clock.now(),
@@ -80,7 +90,7 @@ class GymVisitRepository @Inject constructor(
         }
 
         if (!permissionChecker.hasRequiredPermissions()) {
-            return cacheAndReturn(
+            return mergeAndCache(
                 MonthlyGymSummary.empty(
                     month = month,
                     lastSyncedAt = clock.now(),
@@ -146,11 +156,12 @@ class GymVisitRepository @Inject constructor(
                     )
                 }
             }
-            val saved = cacheAndReturn(summary)
+            // Re-merge app-local manual visits + place tags after every HC aggregate.
+            val saved = mergeAndCache(summary)
             changesSyncEngine.issueToken()
             saved
         } catch (_: SecurityException) {
-            cacheAndReturn(
+            mergeAndCache(
                 MonthlyGymSummary.empty(
                     month = month,
                     lastSyncedAt = clock.now(),
@@ -168,6 +179,65 @@ class GymVisitRepository @Inject constructor(
             )
             cacheAndReturn(fallback)
         }
+    }
+
+    // ---- Manual visits + gym place tagging (app-local; never written to Health Connect) ----
+
+    suspend fun addManualVisit(visit: ManualVisit): MonthlyGymSummary {
+        manualVisitStore.add(visit)
+        return recomputeLocal()
+    }
+
+    /** Deletes a manual visit. HC visits cannot be deleted (returns null, no-op). */
+    suspend fun deleteManualVisit(id: String): MonthlyGymSummary? {
+        if (!isManualVisitId(id)) return null
+        manualVisitStore.delete(id)
+        gymPlaceStore.clearPlace(id)
+        return recomputeLocal()
+    }
+
+    suspend fun setSessionGym(sessionId: String, gymPlaceId: String, gymName: String): MonthlyGymSummary {
+        if (isManualVisitId(sessionId)) {
+            manualVisitStore.updatePlace(sessionId, gymPlaceId, gymName)
+            gymPlaceStore.clearPlace(sessionId)
+        } else {
+            gymPlaceStore.setPlace(sessionId, gymPlaceId, gymName)
+        }
+        return recomputeLocal()
+    }
+
+    suspend fun clearSessionGym(sessionId: String): MonthlyGymSummary {
+        if (isManualVisitId(sessionId)) {
+            manualVisitStore.updatePlace(sessionId, null, null)
+        }
+        gymPlaceStore.clearPlace(sessionId)
+        return recomputeLocal()
+    }
+
+    /**
+     * Re-merge manual visits + tags onto the cached HC visits without hitting Health Connect.
+     */
+    suspend fun recomputeLocal(): MonthlyGymSummary {
+        val month = MonthRange.current(zoneId = clock.zoneId(), clock = clock.clock())
+        val cached = summaryFlow.first()
+            ?.takeIf { it.month.identityKey() == month.identityKey() }
+        val base = cached ?: MonthlyGymSummary.empty(month = month, lastSyncedAt = clock.now())
+        return mergeAndCache(base, keepSyncTime = cached != null)
+    }
+
+    private suspend fun mergeAndCache(
+        hcSummary: MonthlyGymSummary,
+        keepSyncTime: Boolean = false,
+    ): MonthlyGymSummary = writeMutex.withLock {
+        val prefs = preferencesStore.get()
+        val merged = mergeManualVisits(
+            hcSummary = hcSummary,
+            manualVisits = manualVisitStore.getAll(),
+            placeTags = gymPlaceStore.getMap(),
+            visitMode = prefs.visitCountingMode,
+            now = if (keepSyncTime) hcSummary.lastSyncedAt else clock.now(),
+        )
+        cacheAndReturn(merged)
     }
 
     /**

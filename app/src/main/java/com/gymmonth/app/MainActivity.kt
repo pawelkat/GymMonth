@@ -18,6 +18,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.gymmonth.app.data.PreferencesStore
+import com.gymmonth.app.ui.addvisit.AddVisitScreen
 import com.gymmonth.app.ui.diagnostics.DiagnosticsScreen
 import com.gymmonth.app.ui.home.HomeScreen
 import com.gymmonth.app.ui.navigation.AppDestination
@@ -43,7 +44,7 @@ class MainViewModel @Inject constructor(
 }
 
 /**
- * Companion navigation: onboarding, home, diagnostics, session details.
+ * Companion navigation: onboarding, home, diagnostics, session details, add visit.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -96,11 +97,16 @@ class MainActivity : ComponentActivity() {
                                 destination = AppDestination.DIAGNOSTICS
                             },
                             onOpenSession = { openSession(it, AppDestination.HOME) },
+                            onAddVisit = { destination = AppDestination.ADD_VISIT },
                             modifier = pad,
                         )
                         AppDestination.DIAGNOSTICS -> DiagnosticsScreen(
                             onBack = { destination = AppDestination.HOME },
                             onOpenSession = { openSession(it, AppDestination.DIAGNOSTICS) },
+                            modifier = pad,
+                        )
+                        AppDestination.ADD_VISIT -> AddVisitScreen(
+                            onBack = { destination = AppDestination.HOME },
                             modifier = pad,
                         )
                         AppDestination.SESSION_DETAILS -> {

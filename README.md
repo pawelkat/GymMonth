@@ -18,11 +18,16 @@ Sibling of [SwimWeek](https://github.com/pawelkat/SwimWeek) — same architectur
 | 5 | Glance AMOLED widget | Done |
 | 6 | Background sync + month-boundary rollover | Done |
 | 7 | Monthly target + progress ring | Planned |
-| 8 | Gym place tagging | Planned |
+| 8 | Gym place tagging + manual visits (PureGym default) | Done |
 | 9 | Gym reminder notifications | Planned |
 | 10 | 6-month history chart + polish | Planned |
 
 Full plan: [`docs/PLAN.md`](docs/PLAN.md).
+
+### Manual visits & gym tagging
+
+- **Add visit** on Home logs a gym visit the watch missed (date, start time, duration — default 60 min — and gym). Stored on-device only (`ManualVisitStore`), never written to Health Connect, and counted in the monthly total (overlapping HC sessions are credited once).
+- Session details lets you tag any session with a gym (default list from `app/src/main/assets/default_gyms.json` — currently **PureGym**, Grabenwisstrasse 5, 8604 Volketswil — or free text) and delete manual visits. HC sessions are read-only.
 
 ## Requirements
 

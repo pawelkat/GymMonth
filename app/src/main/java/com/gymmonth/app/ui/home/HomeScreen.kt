@@ -33,6 +33,7 @@ import com.gymmonth.app.R
 import com.gymmonth.app.domain.SourceStatus
 import com.gymmonth.app.domain.TargetProgress
 import com.gymmonth.app.domain.displayName
+import com.gymmonth.app.domain.isManual
 import com.gymmonth.app.ui.theme.AmoledBlack
 import com.gymmonth.app.widget.GymMonthWidgetReceiver
 import java.time.format.DateTimeFormatter
@@ -45,6 +46,7 @@ fun HomeScreen(
     onOpenOnboarding: () -> Unit,
     onOpenDiagnostics: () -> Unit,
     onOpenSession: (sessionId: String) -> Unit = {},
+    onAddVisit: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -176,6 +178,7 @@ fun HomeScreen(
             val timeFmt = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
                 .withLocale(Locale.getDefault())
             val zone = summary?.month?.zoneId ?: java.time.ZoneId.systemDefault()
+            val manualLabel = stringResource(R.string.home_flag_manual)
             visits.forEach { visit ->
                 val day = timeFmt.format(visit.start.atZone(zone))
                 val flags = buildList {
@@ -190,6 +193,7 @@ fun HomeScreen(
                         append(" · ")
                         append(visit.exerciseType.displayName())
                         visit.gymName?.let { append(" · ").append(it) }
+                        if (visit.isManual) append(" · ").append(manualLabel)
                         if (flags.isNotEmpty()) {
                             append(" (")
                             append(flags)
@@ -207,6 +211,13 @@ fun HomeScreen(
         }
 
         Spacer(modifier = Modifier.height(28.dp))
+        Button(
+            onClick = onAddVisit,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.home_add_visit))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = { viewModel.refresh() },
             enabled = !state.refreshing,
