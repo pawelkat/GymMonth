@@ -42,8 +42,9 @@ Home → **Settings**. Local files only — no `INTERNET`, no Drive OAuth; Drive
   - **Log to vault** in session details (any visit)
   - optional **auto-log new synced visits** (only visits after the toggle was turned on; never breaks HC sync)
   - **Log this month's visits** (backfill)
-- **Save settings to vault** → overwrites `Notes/GymMonth settings.md` (frontmatter + `| Setting | Value |` table: monthlyTargetVisits, visitCountingMode, gymReminderEnabled, vaultWriteEnabled, vaultAutoLogSynced, vaultRoot, dailyHeading, default gym, catalog path; `updated` in Europe/Zurich). **Load settings from vault** applies the table back (vault root excluded). No secrets.
-- **Gyms catalog:** `Notes/GymMonth/default_gyms.json` in the vault. Missing → copied once from `assets/default_gyms.json`; present → always used (edit it to add gyms); never overwritten by the APK; no access / invalid JSON → built-in list.
+- **Save settings to vault** → overwrites `app_settings/GymMonth/settings.md` (frontmatter + `| Setting | Value |` table: monthlyTargetVisits, visitCountingMode, gymReminderEnabled, vaultWriteEnabled, vaultAutoLogSynced, vaultRoot, dailyHeading, default gym, catalog path; `updated` in Europe/Zurich). **Load settings from vault** applies the table back (vault root excluded). No secrets.
+- **Gyms catalog:** `app_settings/GymMonth/default_gyms.json` in the vault. Missing → copied once from `assets/default_gyms.json`; present → always used (edit it to add gyms); never overwritten by the APK; no access / invalid JSON → built-in list.
+- GymMonth config lives only in the vault folder `app_settings/GymMonth/` — nothing is written to `Notes/`.
 
 Implemented with the shared library [VaultWrite](https://github.com/pawelkat/VaultWrite) (`com.vaultwrite`).
 

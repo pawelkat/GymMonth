@@ -27,7 +27,7 @@ import kotlinx.coroutines.withContext
 /**
  * Writes GymMonth data into the local Obsidian vault via VaultWrite:
  * - visits → `Daily/YYYY-MM-DD.md` under `## Workouts`
- * - settings → `Notes/GymMonth settings.md`
+ * - settings → `app_settings/GymMonth/settings.md` (gyms catalog: `app_settings/GymMonth/default_gyms.json`)
  *
  * Local files only (no network). Never throws; callers show [Outcome] as a message.
  */

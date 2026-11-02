@@ -1,14 +1,18 @@
 package com.gymmonth.app.domain
 
 import com.vaultwrite.KeyValueNote
+import com.vaultwrite.VaultPaths
 import java.time.Instant
 import java.time.ZoneId
 
 /**
- * `Notes/GymMonth settings.md` — non-secret GymMonth preferences mirrored to the vault.
+ * `app_settings/GymMonth/settings.md` — non-secret GymMonth preferences mirrored to the vault.
+ * App config lives under `app_settings/GymMonth/`, never in `Notes/`.
  */
 object GymMonthSettingsNote {
-    const val RELATIVE_PATH = "Notes/GymMonth settings.md"
+    /** Vault folder `app_settings/<APP_FOLDER>/` for GymMonth config + catalogs. */
+    const val APP_FOLDER = "GymMonth"
+    val RELATIVE_PATH: String = VaultPaths.appSettingsRelativePath(APP_FOLDER, "settings.md")
     const val TITLE = "GymMonth settings"
 
     data class Values(

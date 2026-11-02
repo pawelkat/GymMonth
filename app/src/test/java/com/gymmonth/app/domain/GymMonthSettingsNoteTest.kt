@@ -16,7 +16,7 @@ class GymMonthSettingsNoteTest {
         vaultRoot = "/sdcard/DriveSyncFiles/Vault",
         defaultGymId = "puregym",
         defaultGymName = "PureGym",
-        gymsCatalogPath = "Notes/GymMonth/default_gyms.json",
+        gymsCatalogPath = "app_settings/GymMonth/default_gyms.json",
     )
 
     @Test
@@ -28,7 +28,18 @@ class GymMonthSettingsNoteTest {
         assertTrue(md.contains("| dailyHeading | ## Workouts |"))
         assertTrue(md.contains("| vaultRoot | /sdcard/DriveSyncFiles/Vault |"))
         assertTrue(md.contains("| defaultGymName | PureGym |"))
+        assertTrue(md.contains("| gymsCatalog | app_settings/GymMonth/default_gyms.json |"))
         assertFalse(md.contains("token", ignoreCase = true))
+    }
+
+    @Test
+    fun vaultPathsUseAppSettingsFolderNotNotes() {
+        assertEquals("app_settings/GymMonth/settings.md", GymMonthSettingsNote.RELATIVE_PATH)
+        assertEquals(
+            "app_settings/GymMonth/default_gyms.json",
+            com.gymmonth.app.data.DefaultGymsRepository.VAULT_CATALOG_PATH,
+        )
+        assertFalse(GymMonthSettingsNote.RELATIVE_PATH.startsWith("Notes/"))
     }
 
     @Test

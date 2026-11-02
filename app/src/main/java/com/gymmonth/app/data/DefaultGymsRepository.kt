@@ -2,7 +2,9 @@ package com.gymmonth.app.data
 
 import android.content.Context
 import com.gymmonth.app.domain.GymPlace
+import com.gymmonth.app.domain.GymMonthSettingsNote
 import com.vaultwrite.StorageAccess
+import com.vaultwrite.VaultPaths
 import com.vaultwrite.VaultCatalog
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -17,7 +19,7 @@ import kotlinx.coroutines.withContext
  * Default gyms catalog (offline; no INTERNET).
  *
  * Source of truth is the user-editable vault copy at [VAULT_CATALOG_PATH]
- * (`/sdcard/DriveSyncFiles/Vault/Notes/GymMonth/default_gyms.json`):
+ * (`/sdcard/DriveSyncFiles/Vault/app_settings/GymMonth/default_gyms.json`):
  * - missing → seeded once from the bundled `assets/default_gyms.json`
  * - present → always used, never overwritten by the APK copy
  * - no storage access / unreadable / invalid → bundled asset (no crash)
@@ -84,6 +86,7 @@ class DefaultGymsRepository @Inject constructor(
         const val ASSET_NAME = "default_gyms.json"
 
         /** Vault-relative path of the user-editable gyms catalog. */
-        const val VAULT_CATALOG_PATH = "Notes/GymMonth/default_gyms.json"
+        val VAULT_CATALOG_PATH: String =
+            VaultPaths.appSettingsRelativePath(GymMonthSettingsNote.APP_FOLDER, ASSET_NAME)
     }
 }
