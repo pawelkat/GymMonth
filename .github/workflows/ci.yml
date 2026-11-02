@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout VaultWrite library
+        uses: actions/checkout@v4
+        with:
+          repository: pawelkat/VaultWrite
+          path: VaultWrite
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -17,6 +22,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
       - name: Assemble debug
-        run: ./gradlew :app:assembleDebug --stacktrace
+        run: ./gradlew -PvaultWriteDir=$GITHUB_WORKSPACE/VaultWrite :app:assembleDebug --stacktrace
       - name: Unit tests
-        run: ./gradlew :app:testDebugUnitTest --stacktrace
+        run: ./gradlew -PvaultWriteDir=$GITHUB_WORKSPACE/VaultWrite :app:testDebugUnitTest :vaultwrite:testDebugUnitTest --stacktrace

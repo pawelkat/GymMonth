@@ -84,6 +84,8 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
 
+    implementation(project(":vaultwrite"))
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 

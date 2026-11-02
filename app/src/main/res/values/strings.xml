@@ -110,7 +110,7 @@
     <string name="add_visit_gym">Gym</string>
     <string name="add_visit_save">Save visit</string>
     <string name="add_visit_other_month">Outside the current month — saved, but not counted in this month\'s total.</string>
-    <string name="add_visit_local_only">Saved on this phone only. GymMonth never writes to Health Connect.</string>
+    <string name="add_visit_local_only">Saved on this phone. GymMonth never writes to Health Connect. If vault write is on, it is also added to that day\'s Daily note under Workouts.</string>
     <string name="session_details_heading">Session</string>
     <string name="session_when">When</string>
     <string name="session_duration">Duration</string>
@@ -129,5 +129,40 @@
     <string name="privacy_open">Why we need access</string>
     <string name="privacy_body">GymMonth counts gym visits this calendar month from Health Connect strength and gym-like workouts. Totals stay on this phone. No data is uploaded.</string>
     <string name="privacy_permissions_list">We request read access to:\n• Exercise sessions (to find strength / gym workouts)\n• Background read (optional, for the home-screen widget)\n\nWe never write workouts and do not request health history beyond the platform default window. Distance is not required for visit counts.</string>
-    <string name="privacy_no_network">GymMonth does not use the network in v1. Derived monthly visit totals are stored only on device and excluded from backup.</string>
+    <string name="privacy_no_network">GymMonth does not use the network in v1. Derived monthly visit totals are stored only on device and excluded from backup. Optional vault write (Settings) only writes Markdown into your local Obsidian vault folder.</string>
+    <!-- Settings + vault write (VaultWrite) -->
+    <string name="home_settings">Settings</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_target">Monthly target (visits)</string>
+    <string name="settings_target_hint">e.g. 12 — empty = no target</string>
+    <string name="settings_counting">Visit counting</string>
+    <string name="settings_counting_per_session">Per session</string>
+    <string name="settings_counting_per_day">Max 1 per day</string>
+    <string name="settings_default_gym">Default gym for Add visit</string>
+    <string name="settings_gyms_from_vault">Gyms from vault: %1$s</string>
+    <string name="settings_gyms_seeded">Gyms copied to vault (edit there): %1$s</string>
+    <string name="settings_gyms_bundled">Using built-in gyms (vault copy %1$s not available)</string>
+    <string name="settings_vault_title">Obsidian vault</string>
+    <string name="settings_vault_hint">Local files only (DriveSync folder). Visits go to Daily/YYYY-MM-DD.md under %1$s.</string>
+    <string name="settings_vault_enable">Write visits to vault</string>
+    <string name="settings_vault_autolog">Also log new synced visits automatically</string>
+    <string name="settings_vault_root">Vault root path</string>
+    <string name="settings_vault_root_reset">Reset to /sdcard/DriveSyncFiles/Vault</string>
+    <string name="settings_storage_ok">All files access granted.</string>
+    <string name="settings_storage_missing">All files access needed to write to the vault.</string>
+    <string name="settings_grant_storage">Grant all files access</string>
+    <string name="settings_save_to_vault">Save settings to vault</string>
+    <string name="settings_load_from_vault">Load settings from vault</string>
+    <string name="settings_log_month">Log this month\'s visits to vault</string>
+    <string name="settings_loaded">Settings loaded from %1$s</string>
+    <string name="settings_load_missing">%1$s not found — save first.</string>
+    <string name="settings_vault_privacy">No network: GymMonth only writes plain Markdown/JSON into the vault folder on this phone. No Health Connect raw records, no secrets.</string>
+    <string name="session_log_to_vault">Log to vault (Daily · Workouts)</string>
+    <string name="vault_msg_disabled">Vault write is off (Settings).</string>
+    <string name="vault_msg_nothing">Nothing new to log.</string>
+    <string name="vault_msg_need_permission">Vault not written: grant All files access in Settings.</string>
+    <string name="vault_msg_written">Written to %1$s</string>
+    <string name="vault_msg_written_many">%1$d visits written (last: %2$s)</string>
+    <string name="vault_msg_already">Already in %1$s</string>
+    <string name="vault_msg_failed">Vault write failed: %1$s</string>
 </resources>

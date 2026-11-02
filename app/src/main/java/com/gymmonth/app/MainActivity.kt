@@ -24,6 +24,7 @@ import com.gymmonth.app.ui.home.HomeScreen
 import com.gymmonth.app.ui.navigation.AppDestination
 import com.gymmonth.app.ui.onboarding.OnboardingScreen
 import com.gymmonth.app.ui.session.SessionDetailsScreen
+import com.gymmonth.app.ui.settings.SettingsScreen
 import com.gymmonth.app.ui.theme.GymMonthTheme
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,7 +45,7 @@ class MainViewModel @Inject constructor(
 }
 
 /**
- * Companion navigation: onboarding, home, diagnostics, session details, add visit.
+ * Companion navigation: onboarding, home, settings, diagnostics, session details, add visit.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -87,9 +88,11 @@ class MainActivity : ComponentActivity() {
                             onFinished = { destination = AppDestination.HOME },
                             modifier = pad,
                         )
-                        AppDestination.HOME,
-                        AppDestination.SETTINGS,
-                        -> HomeScreen(
+                        AppDestination.SETTINGS -> SettingsScreen(
+                            onBack = { destination = AppDestination.HOME },
+                            modifier = pad,
+                        )
+                        AppDestination.HOME -> HomeScreen(
                             onOpenOnboarding = {
                                 destination = AppDestination.ONBOARDING_REPLAY
                             },
@@ -98,6 +101,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onOpenSession = { openSession(it, AppDestination.HOME) },
                             onAddVisit = { destination = AppDestination.ADD_VISIT },
+                            onOpenSettings = { destination = AppDestination.SETTINGS },
                             modifier = pad,
                         )
                         AppDestination.DIAGNOSTICS -> DiagnosticsScreen(
